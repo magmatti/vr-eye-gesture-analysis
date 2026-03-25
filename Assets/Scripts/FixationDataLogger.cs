@@ -31,6 +31,12 @@ public class FixationDataLogger : MonoBehaviour
         {
             GetDataAndLogIntoFile();
         }
+
+        // press button "B" on quest's controller to go back to menu
+        if (OVRInput.GetDown(OVRInput.Button.Two))
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenuScene");
+        }
     }
 
     private void ToggleLogging()
@@ -40,7 +46,6 @@ public class FixationDataLogger : MonoBehaviour
         if (isLogging)
         {
             writer = new StreamWriter(filePath, true);
-            // .csv file header
             writer.WriteLine("Time_ms,LeftRotX,LeftRotY,LeftRotZ,LeftRotW,LeftConfidence,RightRotX,RightRotY,RightRotZ,RightRotW,RightConfidence");
             Debug.Log($"Started Logging to: {filePath}");
         }
@@ -57,7 +62,6 @@ public class FixationDataLogger : MonoBehaviour
 
     private void GetDataAndLogIntoFile()
     {
-        // getting time in miliseconds
         string timeMs = (Time.time * 1000f).ToString("F0");
 
         Quaternion lRot = leftEyeGaze.transform.rotation;

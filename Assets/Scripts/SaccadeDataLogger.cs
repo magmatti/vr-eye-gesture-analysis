@@ -41,6 +41,7 @@ public class SaccadeDataLogger : MonoBehaviour
 
     void Update()
     {
+        // button "A" on quest's controller will start or stop logging
         if (OVRInput.GetDown(OVRInput.Button.One))
         {
             if (!isLogging) StartSaccadeTest();
@@ -50,6 +51,12 @@ public class SaccadeDataLogger : MonoBehaviour
         if (isLogging && leftEyeGaze != null && rightEyeGaze != null)
         {
             GetDataAndLogIntoFile();
+        }
+
+        // press button "B" on quest's controller to go back to menu
+        if (OVRInput.GetDown(OVRInput.Button.Two))
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenuScene");
         }
     }
 

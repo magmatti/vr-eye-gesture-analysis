@@ -41,6 +41,12 @@ public class BlinkDataLogger : MonoBehaviour
         {
             GetDataAndLogIntoFile();
         }
+
+        // press button "B" on quest's controller to go back to menu
+        if (OVRInput.GetDown(OVRInput.Button.Two))
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenuScene");
+        }
     }
 
     private void StartBlinkTest()
