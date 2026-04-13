@@ -4619,7 +4619,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1700317482}
         m_TargetAssemblyTypeName: MenuManager, Assembly-CSharp
-        m_MethodName: LoadBlinkTest
+        m_MethodName: LoadBlinkScene
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -9990,13 +9990,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edadd067513da4af28f8f0cfa3d1db27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VRLaserPointer
-  laserLength: 3
-  laserColor:
-    r: 1
-    g: 0
-    b: 0
-    a: 1
-  lineRenderer: {fileID: 0}
 --- !u!120 &1588254615
 LineRenderer:
   serializedVersion: 3
@@ -11453,7 +11446,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1700317482}
         m_TargetAssemblyTypeName: MenuManager, Assembly-CSharp
-        m_MethodName: LoadBlinkTest
+        m_MethodName: LoadSmoothPersuitScene
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

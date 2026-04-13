@@ -7,7 +7,7 @@ public class MenuManager : MonoBehaviour
     private string fixationTestScene = "FixationTestScene";
     private string saccadeTestScene = "SaccadeTestScene";
     private string blinkTestScene = "BlinkTestScene";
-    private string smoothPersuitScene = "SmoothPersuitScene";
+    private string smoothPersuitScene = "SmoothPersuitTestScene";
     private string mainMenuScene = "MainMenuScene";
     
     public void LoadFixationScene()
@@ -20,12 +20,12 @@ public class MenuManager : MonoBehaviour
         SceneManager.LoadScene(saccadeTestScene);
     }
 
-    public void LoadBlinkTest()
+    public void LoadBlinkScene()
     {
         SceneManager.LoadScene(blinkTestScene);
     }
 
-    public void LoadSmoothPersuitTest()
+    public void LoadSmoothPersuitScene()
     {
         SceneManager.LoadScene(smoothPersuitScene);
     }
