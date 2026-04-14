@@ -10,6 +10,7 @@ public class SmoothPursuitDataLogger : MonoBehaviour
     [Header("Eye Tracking Components")]
     public OVREyeGaze leftEyeGaze;
     public OVREyeGaze rightEyeGaze;
+    public Transform centerEyeAnchor;
 
     [Header("Pursuit Target Settings")]
     public Transform targetPivot;
@@ -102,6 +103,9 @@ public class SmoothPursuitDataLogger : MonoBehaviour
     {
         string timeMs = (Time.time * 1000f).ToString("F0", CultureInfo.InvariantCulture);
 
+        Quaternion hRot = centerEyeAnchor.rotation;
+        Quaternion lLocRot = leftEyeGaze.transform.localRotation;
+        Quaternion rLocRot = rightEyeGaze.transform.localRotation;
         Quaternion lRot = leftEyeGaze.transform.rotation;
         Quaternion rRot = rightEyeGaze.transform.rotation;
 
@@ -110,11 +114,23 @@ public class SmoothPursuitDataLogger : MonoBehaviour
 
         string line = $"{timeMs}," +
               $"{targetY.ToString("F5", CultureInfo.InvariantCulture)}," +
+              $"{hRot.x.ToString("F5", CultureInfo.InvariantCulture)}," +
+              $"{hRot.y.ToString("F5", CultureInfo.InvariantCulture)}," +
+              $"{hRot.z.ToString("F5", CultureInfo.InvariantCulture)}," +
+              $"{hRot.w.ToString("F5", CultureInfo.InvariantCulture)}," +
+              $"{lLocRot.x.ToString("F5", CultureInfo.InvariantCulture)}," +
+              $"{lLocRot.y.ToString("F5", CultureInfo.InvariantCulture)}," +
+              $"{lLocRot.z.ToString("F5", CultureInfo.InvariantCulture)}," +
+              $"{lLocRot.w.ToString("F5", CultureInfo.InvariantCulture)}," +
               $"{lRot.x.ToString("F5", CultureInfo.InvariantCulture)}," +
               $"{lRot.y.ToString("F5", CultureInfo.InvariantCulture)}," +
               $"{lRot.z.ToString("F5", CultureInfo.InvariantCulture)}," +
               $"{lRot.w.ToString("F5", CultureInfo.InvariantCulture)}," +
               $"{lConf.ToString("F2", CultureInfo.InvariantCulture)}," +
+              $"{rLocRot.x.ToString("F5", CultureInfo.InvariantCulture)}," +
+              $"{rLocRot.y.ToString("F5", CultureInfo.InvariantCulture)}," +
+              $"{rLocRot.z.ToString("F5", CultureInfo.InvariantCulture)}," +
+              $"{rLocRot.w.ToString("F5", CultureInfo.InvariantCulture)}," +
               $"{rRot.x.ToString("F5", CultureInfo.InvariantCulture)}," +
               $"{rRot.y.ToString("F5", CultureInfo.InvariantCulture)}," +
               $"{rRot.z.ToString("F5", CultureInfo.InvariantCulture)}," +
