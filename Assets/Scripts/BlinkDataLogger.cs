@@ -2,68 +2,98 @@ using UnityEngine;
 using System.IO;
 using System;
 using System.Collections;
-using System.Data;
-using NUnit.Framework;
+using TMPro;
+using System.Globalization;
 
 public class BlinkDataLogger : MonoBehaviour
 {
-    
     [Header("Tracking Components")]
     public OVRFaceExpressions faceExpressions;
     public OVREyeGaze leftEyeGaze;
     public OVREyeGaze rightEyeGaze;
 
-    [Header("Sound Settings")]
-    public AudioSource audioSource;
+    [Header("Beep Sound Settings")]
+    public AudioSource metronomeAudio;
     public float beepInterval = 2.0f;
+    public float initialDelay = 3.0f; 
+
+    [Header("UI Panels")]
+    public GameObject infoCanvas;
+    public GameObject alertCanvas;
+    
+    [Header("UI Controls")]
+    public TMP_Dropdown durationDropdown;
+    public TextMeshProUGUI alertMessageText;
 
     private bool isLogging = false;
     private StreamWriter writer;
     private string filePath;
-    private Coroutine soundRoutine;
+    private Coroutine metronomeRoutine;
 
     void Start()
     {
-        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        filePath = Path.Combine(Application.persistentDataPath, $"BlinkData_{timestamp}.csv");
+        infoCanvas.SetActive(true);
+        alertCanvas.SetActive(false);
     }
 
     void Update()
     {
-        // button "A" on quest's controller will start or stop logging
-        if (OVRInput.GetDown(OVRInput.Button.One))
-        {
-            if (!isLogging) StartBlinkTest();
-            else StopBlinkTest();
-        }
-
         if (isLogging && faceExpressions != null && faceExpressions.FaceTrackingEnabled)
         {
-            GetDataAndLogIntoFile();
-        }
-
-        // press button "B" on quest's controller to go back to menu
-        if (OVRInput.GetDown(OVRInput.Button.Two))
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenuScene");
+            LogData();
         }
     }
 
-    private void StartBlinkTest()
+    public void StartTest()
     {
-        isLogging = true;
-        writer = new StreamWriter(filePath, true);
+        float testDuration = 10f; 
+        if (durationDropdown.value == 1) testDuration = 20f;
+        else if (durationDropdown.value == 2) testDuration = 30f;
 
+        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        filePath = Path.Combine(Application.persistentDataPath, $"BlinkData_{timestamp}.csv");
+        
+        writer = new StreamWriter(filePath, false);
         writer.WriteLine("Time_ms,LeftBlinkWeight,RightBlinkWeight,LeftConfidence,RightConfidence");
-        Debug.Log($"Started Blink Logging to: {filePath}");
 
-        soundRoutine = StartCoroutine(SoundSequence());
+        infoCanvas.SetActive(false);
+        
+        isLogging = true;
+        StartCoroutine(TestTimer(testDuration));
+        metronomeRoutine = StartCoroutine(MetronomeSequence());
     }
 
-    private void StopBlinkTest()
+    public void RestartTest()
+    {
+        alertCanvas.SetActive(false);
+        infoCanvas.SetActive(true);
+    }
+
+    private IEnumerator TestTimer(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        EndTest();
+    }
+
+    private IEnumerator MetronomeSequence()
+    {
+        // initial beep delay
+        yield return new WaitForSeconds(initialDelay);
+
+        while (isLogging)
+        {
+            if (metronomeAudio != null && metronomeAudio.clip != null)
+            {
+                metronomeAudio.Play();
+            }
+            yield return new WaitForSeconds(beepInterval);
+        }
+    }
+
+    private void EndTest()
     {
         isLogging = false;
-        if (soundRoutine != null) StopCoroutine(soundRoutine);
+        if (metronomeRoutine != null) StopCoroutine(metronomeRoutine);
 
         if (writer != null)
         {
@@ -71,34 +101,26 @@ public class BlinkDataLogger : MonoBehaviour
             writer = null;
         }
 
-        Debug.Log("Stopped Blink Logging");
+        alertCanvas.SetActive(true);
+        alertMessageText.text = $"Blink Test Complete!\nData saved to:\n{filePath}\n";
     }
 
-    private IEnumerator SoundSequence()
+    private void LogData()
     {
-        // sound sequence to play beep every 2 seconds
-        while (isLogging)
-        {
-            if (audioSource != null && audioSource.clip != null)
-            {
-                audioSource.Play();
-            }
-            yield return new WaitForSeconds(beepInterval);
-        }
-    }
+        string timeMs = (Time.time * 1000f).ToString("F0", CultureInfo.InvariantCulture);
 
-    private void GetDataAndLogIntoFile()
-    {
-        string timeMs = (Time.time * 1000f).ToString("F0");
-
-        // these return a float from 0.0 (eyes open) to 1.0 (eyes closed)
         float leftBlink = faceExpressions.GetWeight(OVRFaceExpressions.FaceExpression.EyesClosedL);
-        float rightBlink = faceExpressions.GetWeight(OVRFaceExpressions.FaceExpression.BrowLowererR);
+        float rightBlink = faceExpressions.GetWeight(OVRFaceExpressions.FaceExpression.EyesClosedR);
 
         float lConf = leftEyeGaze != null ? leftEyeGaze.Confidence : 0f;
         float rConf = rightEyeGaze != null ? rightEyeGaze.Confidence : 0f;
 
-        string line = $"{timeMs},{leftBlink},{rightBlink},{lConf},{rConf}";
+        string line = $"{timeMs}," +
+              $"{leftBlink.ToString("F5", CultureInfo.InvariantCulture)}," +
+              $"{rightBlink.ToString("F5", CultureInfo.InvariantCulture)}," +
+              $"{lConf.ToString("F2", CultureInfo.InvariantCulture)}," +
+              $"{rConf.ToString("F2", CultureInfo.InvariantCulture)}";
+
         writer.WriteLine(line);
     }
 

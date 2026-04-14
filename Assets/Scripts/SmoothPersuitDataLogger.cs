@@ -5,20 +5,18 @@ using System.Collections;
 using TMPro;
 using System.Globalization;
 
-public class SaccadeDataLogger : MonoBehaviour
+public class SmoothPursuitDataLogger : MonoBehaviour
 {
     [Header("Eye Tracking Components")]
     public OVREyeGaze leftEyeGaze;
     public OVREyeGaze rightEyeGaze;
 
-    [Header("Saccade Target Settings")]
-    public Transform targetPivot; 
-    public float jumpInterval = 2.0f; 
-    
-    private Vector3[] jumpAngles = new Vector3[] {
-        Vector3.zero, new Vector3(0, 15, 0), Vector3.zero, new Vector3(0, -15, 0),
-        Vector3.zero, new Vector3(-10, 0, 0), Vector3.zero, new Vector3(10, 0, 0)
-    };
+    [Header("Pursuit Target Settings")]
+    public Transform targetPivot;
+    [Tooltip("How far left and right the dot sweeps (in degrees)")]
+    public float maxAngle = 20f; 
+    [Tooltip("How fast the dot oscillates")]
+    public float movementSpeed = 2f; 
 
     [Header("UI Panels")]
     public GameObject infoCanvas;
@@ -31,7 +29,7 @@ public class SaccadeDataLogger : MonoBehaviour
     private bool isLogging = false;
     private StreamWriter writer;
     private string filePath;
-    private Coroutine saccadeRoutine;
+    private float testStartTime;
 
     void Start()
     {
@@ -44,7 +42,11 @@ public class SaccadeDataLogger : MonoBehaviour
     {
         if (isLogging && leftEyeGaze != null && rightEyeGaze != null)
         {
-            LogData();
+            float timeActive = Time.time - testStartTime;
+            float currentAngle = Mathf.Sin(timeActive * movementSpeed) * maxAngle;
+            targetPivot.localEulerAngles = new Vector3(0, currentAngle, 0);
+
+            LogData(currentAngle);
         }
     }
 
@@ -55,18 +57,18 @@ public class SaccadeDataLogger : MonoBehaviour
         else if (durationDropdown.value == 2) testDuration = 30f;
 
         string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        filePath = Path.Combine(Application.persistentDataPath, $"SaccadeData_{timestamp}.csv");
+        filePath = Path.Combine(Application.persistentDataPath, $"SmoothPursuitData_{timestamp}.csv");
         
         writer = new StreamWriter(filePath, false);
-        writer.WriteLine("Time_ms,TargetRotX,TargetRotY,LeftRotX,LeftRotY,LeftRotZ,LeftRotW,LeftConfidence,RightRotX,RightRotY,RightRotZ,RightRotW,RightConfidence");
+        writer.WriteLine("Time_ms,TargetRotY,LeftRotX,LeftRotY,LeftRotZ,LeftRotW,LeftConfidence,RightRotX,RightRotY,RightRotZ,RightRotW,RightConfidence");
 
         infoCanvas.SetActive(false);
         targetPivot.gameObject.SetActive(true);
         targetPivot.localEulerAngles = Vector3.zero;
         
+        testStartTime = Time.time;
         isLogging = true;
         StartCoroutine(TestTimer(testDuration));
-        saccadeRoutine = StartCoroutine(SaccadeSequence());
     }
 
     public void RestartTest()
@@ -81,21 +83,9 @@ public class SaccadeDataLogger : MonoBehaviour
         EndTest();
     }
 
-    private IEnumerator SaccadeSequence()
-    {
-        int index = 0;
-        while (isLogging)
-        {
-            targetPivot.localEulerAngles = jumpAngles[index];
-            index = (index + 1) % jumpAngles.Length;
-            yield return new WaitForSeconds(jumpInterval);
-        }
-    }
-
     private void EndTest()
     {
         isLogging = false;
-        if (saccadeRoutine != null) StopCoroutine(saccadeRoutine);
 
         if (writer != null)
         {
@@ -105,14 +95,12 @@ public class SaccadeDataLogger : MonoBehaviour
 
         targetPivot.gameObject.SetActive(false);
         alertCanvas.SetActive(true);
-        alertMessageText.text = $"Saccade Test Complete!\nData saved to:\n{filePath}\n";
+        alertMessageText.text = $"Smooth Pursuit Test Complete!\nData saved to:\n{filePath}\n";
     }
 
-    private void LogData()
+    private void LogData(float targetY)
     {
         string timeMs = (Time.time * 1000f).ToString("F0", CultureInfo.InvariantCulture);
-        float targetX = targetPivot.localEulerAngles.x;
-        float targetY = targetPivot.localEulerAngles.y;
 
         Quaternion lRot = leftEyeGaze.transform.rotation;
         Quaternion rRot = rightEyeGaze.transform.rotation;
@@ -121,8 +109,7 @@ public class SaccadeDataLogger : MonoBehaviour
         float rConf = rightEyeGaze.Confidence;
 
         string line = $"{timeMs}," +
-              $"{targetX.ToString("F2", CultureInfo.InvariantCulture)}," +
-              $"{targetY.ToString("F2", CultureInfo.InvariantCulture)}," +
+              $"{targetY.ToString("F5", CultureInfo.InvariantCulture)}," +
               $"{lRot.x.ToString("F5", CultureInfo.InvariantCulture)}," +
               $"{lRot.y.ToString("F5", CultureInfo.InvariantCulture)}," +
               $"{lRot.z.ToString("F5", CultureInfo.InvariantCulture)}," +
