@@ -1263,6 +1263,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SmoothPursuitDataLogger
   leftEyeGaze: {fileID: 1937041620}
   rightEyeGaze: {fileID: 1079315437}
+  centerEyeAnchor: {fileID: 1312951190}
   targetPivot: {fileID: 52752249}
   maxAngle: 20
   movementSpeed: 2

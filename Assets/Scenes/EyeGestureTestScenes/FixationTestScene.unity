@@ -15074,6 +15074,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FixationDataLogger
   leftEyeGaze: {fileID: 209257897}
   rightEyeGaze: {fileID: 673885303}
+  centerEyeAnchor: {fileID: 372629493}
   fixationTarget: {fileID: 1819220531}
   infoCanvas: {fileID: 2139238313}
   alertCanvas: {fileID: 236998266}

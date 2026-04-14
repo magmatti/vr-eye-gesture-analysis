@@ -11199,6 +11199,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SaccadeDataLogger
   leftEyeGaze: {fileID: 1361258391}
   rightEyeGaze: {fileID: 374078723}
+  centerEyeAnchor: {fileID: 1710752569}
   targetPivot: {fileID: 1267925421}
   jumpInterval: 2
   infoCanvas: {fileID: 1851048902}
