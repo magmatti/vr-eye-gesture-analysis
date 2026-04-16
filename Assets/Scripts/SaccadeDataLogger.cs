@@ -29,6 +29,7 @@ public class SaccadeDataLogger : MonoBehaviour
     public TMP_Dropdown durationDropdown;
     public TextMeshProUGUI alertMessageText;
 
+    private float testStartTime;
     private bool isLogging = false;
     private StreamWriter writer;
     private string filePath;
@@ -59,12 +60,20 @@ public class SaccadeDataLogger : MonoBehaviour
         filePath = Path.Combine(Application.persistentDataPath, $"SaccadeData_{timestamp}.csv");
         
         writer = new StreamWriter(filePath, false);
-        writer.WriteLine("Time_ms,TargetRotX,TargetRotY,LeftRotX,LeftRotY,LeftRotZ,LeftRotW,LeftConfidence,RightRotX,RightRotY,RightRotZ,RightRotW,RightConfidence");
+        writer.WriteLine("Time_ms,TargetRotX,TargetRotY,HeadRotX,HeadRotY," +
+                 "HeadRotZ,HeadRotW,LeftLocalRotX,LeftLocalRotY," +
+                 "LeftLocalRotZ,LeftLocalRotW,LeftWorldRotX," +
+                 "LeftWorldRotY,LeftWorldRotZ,LeftWorldRotW," +
+                 "LeftConfidence,RightLocalRotX,RightLocalRotY," +
+                 "RightLocalRotZ,RightLocalRotW,RightWorldRotX," +
+                 "RightWorldRotY,RightWorldRotZ,RightWorldRotW," +
+                 "RightConfidence");
 
         infoCanvas.SetActive(false);
         targetPivot.gameObject.SetActive(true);
         targetPivot.localEulerAngles = Vector3.zero;
         
+        testStartTime = Time.time;
         isLogging = true;
         StartCoroutine(TestTimer(testDuration));
         saccadeRoutine = StartCoroutine(SaccadeSequence());
@@ -111,7 +120,9 @@ public class SaccadeDataLogger : MonoBehaviour
 
     private void LogData()
     {
-        string timeMs = (Time.time * 1000f).ToString("F0", CultureInfo.InvariantCulture);
+        string timeMs = ((Time.time - testStartTime) * 1000f)
+            .ToString("F0", CultureInfo.InvariantCulture);
+
         float targetX = targetPivot.localEulerAngles.x;
         float targetY = targetPivot.localEulerAngles.y;
 

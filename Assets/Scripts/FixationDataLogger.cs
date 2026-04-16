@@ -24,6 +24,7 @@ public class FixationDataLogger : MonoBehaviour
     public TMP_Dropdown durationDropdown;
     public TextMeshProUGUI alertMessageText;
 
+    private float testStartTime;
     private bool isLogging = false;
     private StreamWriter writer;
     private string filePath;
@@ -43,10 +44,8 @@ public class FixationDataLogger : MonoBehaviour
         }
     }
 
-    // --- UI BUTTON METHODS ---
     public void StartTest()
     {
-        // determination of test duration based on dropdown menu
         float testDurationInSeconds = 10f; 
         if (durationDropdown.value == 1) testDurationInSeconds = 20f;
         else if (durationDropdown.value == 2) testDurationInSeconds = 30f;
@@ -55,11 +54,18 @@ public class FixationDataLogger : MonoBehaviour
         filePath = Path.Combine(Application.persistentDataPath, $"FixationData_{timestamp}.csv");
         
         writer = new StreamWriter(filePath, false);
-        writer.WriteLine("Time_ms,LeftRotX,LeftRotY,LeftRotZ,LeftRotW,LeftConfidence,RightRotX,RightRotY,RightRotZ,RightRotW,RightConfidence");
+        writer.WriteLine("Time_ms,HeadRotX,HeadRotY,HeadRotZ,HeadRotW," +
+                 "LeftLocalRotX,LeftLocalRotY,LeftLocalRotZ,LeftLocalRotW," +
+                 "LeftWorldRotX,LeftWorldRotY,LeftWorldRotZ,LeftWorldRotW," +
+                 "LeftConfidence,RightLocalRotX,RightLocalRotY," +
+                 "RightLocalRotZ,RightLocalRotW,RightWorldRotX," +
+                 "RightWorldRotY,RightWorldRotZ,RightWorldRotW," +
+                 "RightConfidence");
 
         infoCanvas.SetActive(false);
         fixationTarget.SetActive(true);
         
+        testStartTime = Time.time;
         isLogging = true;
         StartCoroutine(TestTimer(testDurationInSeconds));
     }
@@ -95,7 +101,8 @@ public class FixationDataLogger : MonoBehaviour
 
     private void LogData()
     {
-        string timeMs = (Time.time * 1000f).ToString("F0", CultureInfo.InvariantCulture);
+        string timeMs = ((Time.time - testStartTime) * 1000f)
+            .ToString("F0", CultureInfo.InvariantCulture);
 
         Quaternion hRot = centerEyeAnchor.rotation;
         Quaternion lLocRot = leftEyeGaze.transform.localRotation;

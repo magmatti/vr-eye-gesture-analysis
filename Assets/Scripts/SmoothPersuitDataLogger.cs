@@ -61,7 +61,13 @@ public class SmoothPursuitDataLogger : MonoBehaviour
         filePath = Path.Combine(Application.persistentDataPath, $"SmoothPursuitData_{timestamp}.csv");
         
         writer = new StreamWriter(filePath, false);
-        writer.WriteLine("Time_ms,TargetRotY,LeftRotX,LeftRotY,LeftRotZ,LeftRotW,LeftConfidence,RightRotX,RightRotY,RightRotZ,RightRotW,RightConfidence");
+        writer.WriteLine("Time_ms,TargetRotY,HeadRotX,HeadRotY,HeadRotZ," +
+                 "HeadRotW,LeftLocalRotX,LeftLocalRotY,LeftLocalRotZ," +
+                 "LeftLocalRotW,LeftWorldRotX,LeftWorldRotY," +
+                 "LeftWorldRotZ,LeftWorldRotW,LeftConfidence," +
+                 "RightLocalRotX,RightLocalRotY,RightLocalRotZ," +
+                 "RightLocalRotW,RightWorldRotX,RightWorldRotY," +
+                 "RightWorldRotZ,RightWorldRotW,RightConfidence");
 
         infoCanvas.SetActive(false);
         targetPivot.gameObject.SetActive(true);
@@ -101,7 +107,8 @@ public class SmoothPursuitDataLogger : MonoBehaviour
 
     private void LogData(float targetY)
     {
-        string timeMs = (Time.time * 1000f).ToString("F0", CultureInfo.InvariantCulture);
+        string timeMs = ((Time.time - testStartTime) * 1000f)
+            .ToString("F0", CultureInfo.InvariantCulture);
 
         Quaternion hRot = centerEyeAnchor.rotation;
         Quaternion lLocRot = leftEyeGaze.transform.localRotation;

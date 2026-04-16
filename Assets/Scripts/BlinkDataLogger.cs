@@ -25,6 +25,7 @@ public class BlinkDataLogger : MonoBehaviour
     public TMP_Dropdown durationDropdown;
     public TextMeshProUGUI alertMessageText;
 
+    private float testStartTime;
     private bool isLogging = false;
     private StreamWriter writer;
     private string filePath;
@@ -58,6 +59,7 @@ public class BlinkDataLogger : MonoBehaviour
 
         infoCanvas.SetActive(false);
         
+        testStartTime = Time.time;
         isLogging = true;
         StartCoroutine(TestTimer(testDuration));
         metronomeRoutine = StartCoroutine(MetronomeSequence());
@@ -107,7 +109,8 @@ public class BlinkDataLogger : MonoBehaviour
 
     private void LogData()
     {
-        string timeMs = (Time.time * 1000f).ToString("F0", CultureInfo.InvariantCulture);
+        string timeMs = ((Time.time - testStartTime) * 1000f)
+            .ToString("F0", CultureInfo.InvariantCulture);
 
         float leftBlink = faceExpressions.GetWeight(OVRFaceExpressions.FaceExpression.EyesClosedL);
         float rightBlink = faceExpressions.GetWeight(OVRFaceExpressions.FaceExpression.EyesClosedR);
