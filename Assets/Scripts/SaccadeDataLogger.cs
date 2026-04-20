@@ -1,11 +1,11 @@
 using UnityEngine;
 using System.IO;
-using System;
 using System.Collections;
-using TMPro;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 
-public class SaccadeDataLogger : MonoBehaviour
+public class SaccadeDataLogger : BaseDataLogger
 {
     [Header("Eye Tracking Components")]
     public OVREyeGaze leftEyeGaze;
@@ -21,24 +21,20 @@ public class SaccadeDataLogger : MonoBehaviour
         Vector3.zero, new Vector3(-10, 0, 0), Vector3.zero, new Vector3(10, 0, 0)
     };
 
-    [Header("UI Panels")]
-    public GameObject infoCanvas;
-    public GameObject alertCanvas;
-    
-    [Header("UI Controls")]
-    public TMP_Dropdown durationDropdown;
-    public TextMeshProUGUI alertMessageText;
-
-    private float testStartTime;
-    private bool isLogging = false;
-    private StreamWriter writer;
-    private string filePath;
     private Coroutine saccadeRoutine;
 
-    void Start()
+    private struct SaccadeDataPoint
     {
-        infoCanvas.SetActive(true);
-        alertCanvas.SetActive(false);
+        public float TimeMs, TargetX, TargetY;
+        public Quaternion HRot, LLocRot, RLocRot, LRot, RRot;
+        public float LConf, RConf;
+    }
+
+    private List<SaccadeDataPoint> dataBuffer;
+
+    protected override void Start()
+    {
+        base.Start();
         targetPivot.gameObject.SetActive(false);
     }
 
@@ -46,49 +42,18 @@ public class SaccadeDataLogger : MonoBehaviour
     {
         if (isLogging && leftEyeGaze != null && rightEyeGaze != null)
         {
-            LogData();
+            CaptureData();
         }
     }
 
     public void StartTest()
     {
-        float testDuration = 10f; 
-        if (durationDropdown.value == 1) testDuration = 20f;
-        else if (durationDropdown.value == 2) testDuration = 30f;
-
-        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        filePath = Path.Combine(Application.persistentDataPath, $"SaccadeData_{timestamp}.csv");
-        
-        writer = new StreamWriter(filePath, false);
-        writer.WriteLine("Time_ms,TargetRotX,TargetRotY,HeadRotX,HeadRotY," +
-                 "HeadRotZ,HeadRotW,LeftLocalRotX,LeftLocalRotY," +
-                 "LeftLocalRotZ,LeftLocalRotW,LeftWorldRotX," +
-                 "LeftWorldRotY,LeftWorldRotZ,LeftWorldRotW," +
-                 "LeftConfidence,RightLocalRotX,RightLocalRotY," +
-                 "RightLocalRotZ,RightLocalRotW,RightWorldRotX," +
-                 "RightWorldRotY,RightWorldRotZ,RightWorldRotW," +
-                 "RightConfidence");
-
-        infoCanvas.SetActive(false);
+        dataBuffer = new List<SaccadeDataPoint>(3000); 
         targetPivot.gameObject.SetActive(true);
         targetPivot.localEulerAngles = Vector3.zero;
         
-        testStartTime = Time.time;
-        isLogging = true;
-        StartCoroutine(TestTimer(testDuration));
+        InitializeTest("Saccade");
         saccadeRoutine = StartCoroutine(SaccadeSequence());
-    }
-
-    public void RestartTest()
-    {
-        alertCanvas.SetActive(false);
-        infoCanvas.SetActive(true);
-    }
-
-    private IEnumerator TestTimer(float duration)
-    {
-        yield return new WaitForSeconds(duration);
-        EndTest();
     }
 
     private IEnumerator SaccadeSequence()
@@ -102,70 +67,77 @@ public class SaccadeDataLogger : MonoBehaviour
         }
     }
 
-    private void EndTest()
+    private void CaptureData()
+    {
+        dataBuffer.Add(new SaccadeDataPoint
+        {
+            TimeMs = (Time.time - testStartTime) * 1000f,
+            TargetX = targetPivot.localEulerAngles.x,
+            TargetY = targetPivot.localEulerAngles.y,
+            HRot = centerEyeAnchor.rotation,
+            LLocRot = leftEyeGaze.transform.localRotation,
+            RLocRot = rightEyeGaze.transform.localRotation,
+            LRot = leftEyeGaze.transform.rotation,
+            RRot = rightEyeGaze.transform.rotation,
+            LConf = leftEyeGaze.Confidence,
+            RConf = rightEyeGaze.Confidence
+        });
+    }
+
+    protected override void EndTest()
     {
         isLogging = false;
         if (saccadeRoutine != null) StopCoroutine(saccadeRoutine);
-
-        if (writer != null)
-        {
-            writer.Close();
-            writer = null;
-        }
-
         targetPivot.gameObject.SetActive(false);
-        alertCanvas.SetActive(true);
-        alertMessageText.text = $"Saccade Test Complete!\nData saved to:\n{filePath}\n";
+
+        WriteBufferToFile();
+        ShowCompletionAlert("Saccade");
     }
 
-    private void LogData()
+    private void WriteBufferToFile()
     {
-        string timeMs = ((Time.time - testStartTime) * 1000f)
-            .ToString("F0", CultureInfo.InvariantCulture);
+        using (StreamWriter writer = new StreamWriter(filePath, false))
+        {
+            writer.WriteLine("Time_ms,TargetRotX,TargetRotY,HeadRotX,HeadRotY," +
+                             "HeadRotZ,HeadRotW,LeftLocalRotX,LeftLocalRotY," +
+                             "LeftLocalRotZ,LeftLocalRotW,LeftWorldRotX," +
+                             "LeftWorldRotY,LeftWorldRotZ,LeftWorldRotW," +
+                             "LeftConfidence,RightLocalRotX,RightLocalRotY," +
+                             "RightLocalRotZ,RightLocalRotW,RightWorldRotX," +
+                             "RightWorldRotY,RightWorldRotZ,RightWorldRotW,RightConfidence");
 
-        float targetX = targetPivot.localEulerAngles.x;
-        float targetY = targetPivot.localEulerAngles.y;
-
-        Quaternion hRot = centerEyeAnchor.rotation;
-        Quaternion lLocRot = leftEyeGaze.transform.localRotation;
-        Quaternion rLocRot = rightEyeGaze.transform.localRotation;
-        Quaternion lRot = leftEyeGaze.transform.rotation;
-        Quaternion rRot = rightEyeGaze.transform.rotation;
-
-        float lConf = leftEyeGaze.Confidence;
-        float rConf = rightEyeGaze.Confidence;
-
-        string line = $"{timeMs}," +
-              $"{targetX.ToString("F2", CultureInfo.InvariantCulture)}," +
-              $"{targetY.ToString("F2", CultureInfo.InvariantCulture)}," +
-              $"{hRot.x.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{hRot.y.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{hRot.z.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{hRot.w.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{lLocRot.x.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{lLocRot.y.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{lLocRot.z.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{lLocRot.w.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{lRot.x.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{lRot.y.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{lRot.z.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{lRot.w.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{lConf.ToString("F2", CultureInfo.InvariantCulture)}," +
-              $"{rLocRot.x.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{rLocRot.y.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{rLocRot.z.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{rLocRot.w.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{rRot.x.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{rRot.y.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{rRot.z.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{rRot.w.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{rConf.ToString("F2", CultureInfo.InvariantCulture)}";
-
-        writer.WriteLine(line);
-    }
-
-    void OnDestroy()
-    {
-        if (writer != null) writer.Close();
+            StringBuilder sb = new StringBuilder(512); 
+            foreach (var p in dataBuffer)
+            {
+                sb.Clear();
+                sb.Append(p.TimeMs.ToString("F0", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.TargetX.ToString("F2", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.TargetY.ToString("F2", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.HRot.x.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.HRot.y.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.HRot.z.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.HRot.w.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.LLocRot.x.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.LLocRot.y.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.LLocRot.z.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.LLocRot.w.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.LRot.x.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.LRot.y.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.LRot.z.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.LRot.w.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.LConf.ToString("F2", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.RLocRot.x.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.RLocRot.y.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.RLocRot.z.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.RLocRot.w.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.RRot.x.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.RRot.y.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.RRot.z.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.RRot.w.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.RConf.ToString("F2", CultureInfo.InvariantCulture));
+                writer.WriteLine(sb.ToString());
+            }
+        }
+        dataBuffer.Clear();
     }
 }

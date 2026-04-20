@@ -1,11 +1,11 @@
 using UnityEngine;
 using System.IO;
-using System;
 using System.Collections;
-using TMPro;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 
-public class BlinkDataLogger : MonoBehaviour
+public class BlinkDataLogger : BaseDataLogger
 {
     [Header("Tracking Components")]
     public OVRFaceExpressions faceExpressions;
@@ -17,69 +17,33 @@ public class BlinkDataLogger : MonoBehaviour
     public float beepInterval = 2.0f;
     public float initialDelay = 3.0f; 
 
-    [Header("UI Panels")]
-    public GameObject infoCanvas;
-    public GameObject alertCanvas;
-    
-    [Header("UI Controls")]
-    public TMP_Dropdown durationDropdown;
-    public TextMeshProUGUI alertMessageText;
-
-    private float testStartTime;
-    private bool isLogging = false;
-    private StreamWriter writer;
-    private string filePath;
     private Coroutine metronomeRoutine;
 
-    void Start()
+    private struct BlinkDataPoint
     {
-        infoCanvas.SetActive(true);
-        alertCanvas.SetActive(false);
+        public float TimeMs, LeftBlinkWeight, RightBlinkWeight;
+        public float LConf, RConf;
     }
+
+    private List<BlinkDataPoint> dataBuffer;
 
     void Update()
     {
         if (isLogging && faceExpressions != null && faceExpressions.FaceTrackingEnabled)
         {
-            LogData();
+            CaptureData();
         }
     }
 
     public void StartTest()
     {
-        float testDuration = 10f; 
-        if (durationDropdown.value == 1) testDuration = 20f;
-        else if (durationDropdown.value == 2) testDuration = 30f;
-
-        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        filePath = Path.Combine(Application.persistentDataPath, $"BlinkData_{timestamp}.csv");
-        
-        writer = new StreamWriter(filePath, false);
-        writer.WriteLine("Time_ms,LeftBlinkWeight,RightBlinkWeight,LeftConfidence,RightConfidence");
-
-        infoCanvas.SetActive(false);
-        
-        testStartTime = Time.time;
-        isLogging = true;
-        StartCoroutine(TestTimer(testDuration));
+        dataBuffer = new List<BlinkDataPoint>(3000);
+        InitializeTest("Blink");
         metronomeRoutine = StartCoroutine(MetronomeSequence());
-    }
-
-    public void RestartTest()
-    {
-        alertCanvas.SetActive(false);
-        infoCanvas.SetActive(true);
-    }
-
-    private IEnumerator TestTimer(float duration)
-    {
-        yield return new WaitForSeconds(duration);
-        EndTest();
     }
 
     private IEnumerator MetronomeSequence()
     {
-        // initial beep delay
         yield return new WaitForSeconds(initialDelay);
 
         while (isLogging)
@@ -92,43 +56,45 @@ public class BlinkDataLogger : MonoBehaviour
         }
     }
 
-    private void EndTest()
+    private void CaptureData()
+    {
+        dataBuffer.Add(new BlinkDataPoint
+        {
+            TimeMs = (Time.time - testStartTime) * 1000f,
+            LeftBlinkWeight = faceExpressions.GetWeight(OVRFaceExpressions.FaceExpression.EyesClosedL),
+            RightBlinkWeight = faceExpressions.GetWeight(OVRFaceExpressions.FaceExpression.EyesClosedR),
+            LConf = leftEyeGaze != null ? leftEyeGaze.Confidence : 0f,
+            RConf = rightEyeGaze != null ? rightEyeGaze.Confidence : 0f
+        });
+    }
+
+    protected override void EndTest()
     {
         isLogging = false;
         if (metronomeRoutine != null) StopCoroutine(metronomeRoutine);
+        
+        WriteBufferToFile();
+        ShowCompletionAlert("Blink");
+    }
 
-        if (writer != null)
+    private void WriteBufferToFile()
+    {
+        using (StreamWriter writer = new StreamWriter(filePath, false))
         {
-            writer.Close();
-            writer = null;
+            writer.WriteLine("Time_ms,LeftBlinkWeight,RightBlinkWeight,LeftConfidence,RightConfidence");
+
+            StringBuilder sb = new StringBuilder(128);
+            foreach (var p in dataBuffer)
+            {
+                sb.Clear();
+                sb.Append(p.TimeMs.ToString("F0", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.LeftBlinkWeight.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.RightBlinkWeight.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.LConf.ToString("F2", CultureInfo.InvariantCulture)).Append(",")
+                  .Append(p.RConf.ToString("F2", CultureInfo.InvariantCulture));
+                writer.WriteLine(sb.ToString());
+            }
         }
-
-        alertCanvas.SetActive(true);
-        alertMessageText.text = $"Blink Test Complete!\nData saved to:\n{filePath}\n";
-    }
-
-    private void LogData()
-    {
-        string timeMs = ((Time.time - testStartTime) * 1000f)
-            .ToString("F0", CultureInfo.InvariantCulture);
-
-        float leftBlink = faceExpressions.GetWeight(OVRFaceExpressions.FaceExpression.EyesClosedL);
-        float rightBlink = faceExpressions.GetWeight(OVRFaceExpressions.FaceExpression.EyesClosedR);
-
-        float lConf = leftEyeGaze != null ? leftEyeGaze.Confidence : 0f;
-        float rConf = rightEyeGaze != null ? rightEyeGaze.Confidence : 0f;
-
-        string line = $"{timeMs}," +
-              $"{leftBlink.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{rightBlink.ToString("F5", CultureInfo.InvariantCulture)}," +
-              $"{lConf.ToString("F2", CultureInfo.InvariantCulture)}," +
-              $"{rConf.ToString("F2", CultureInfo.InvariantCulture)}";
-
-        writer.WriteLine(line);
-    }
-
-    void OnDestroy()
-    {
-        if (writer != null) writer.Close();
+        dataBuffer.Clear();
     }
 }
