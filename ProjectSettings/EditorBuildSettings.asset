@@ -18,7 +18,7 @@ EditorBuildSettings:
     path: Assets/Scenes/EyeGestureTestScenes/SaccadeTestScene.unity
     guid: ce8b06bf6d12a4180a24698cdfd40dfc
   - enabled: 1
-    path: Assets/Scenes/EyeGestureTestScenes/SmoothPersuitTestScene.unity
+    path: Assets/Scenes/EyeGestureTestScenes/CombinedGestureTestScene.unity
     guid: 29737c106a8784a0eaf2812d2de18d90
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

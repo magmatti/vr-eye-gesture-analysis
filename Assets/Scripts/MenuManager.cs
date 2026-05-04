@@ -8,7 +8,7 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private string fixationTestScene = "FixationTestScene";
     [SerializeField] private string saccadeTestScene = "SaccadeTestScene";
     [SerializeField] private string blinkTestScene = "BlinkTestScene";
-    [SerializeField] private string smoothPersuitScene = "SmoothPersuitTestScene";
+    [SerializeField] private string combinedGestureScene = "CombinedGestureTestScene";
     [SerializeField] private string mainMenuScene = "MainMenuScene";
     
     public void LoadFixationScene() => SceneManager.LoadScene(fixationTestScene);
@@ -17,7 +17,7 @@ public class MenuManager : MonoBehaviour
 
     public void LoadBlinkScene() => SceneManager.LoadScene(blinkTestScene);
 
-    public void LoadSmoothPersuitScene() => SceneManager.LoadScene(smoothPersuitScene);
+    public void LoadCombinedGestureScene() => SceneManager.LoadScene(combinedGestureScene);
 
     public void LoadMainMenu() => SceneManager.LoadScene(mainMenuScene);
 
