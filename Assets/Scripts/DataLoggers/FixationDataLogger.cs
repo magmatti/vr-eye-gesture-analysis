@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using DataLoggers.DataPoints;
 
 public class FixationDataLogger : BaseDataLogger
 {
@@ -11,13 +12,6 @@ public class FixationDataLogger : BaseDataLogger
     public Transform centerEyeAnchor;
 
     public GameObject fixationTarget;
-
-    private struct FixationDataPoint
-    {
-        public float TimeMs;
-        public Quaternion HRot, LLocRot, RLocRot, LRot, RRot;
-        public float LConf, RConf;
-    }
 
     private List<FixationDataPoint> dataBuffer;
 

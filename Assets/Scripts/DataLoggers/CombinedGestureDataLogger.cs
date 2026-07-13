@@ -4,17 +4,10 @@ using System.IO;
 using System.Collections;
 using TMPro;
 using System.Globalization;
+using DataLoggers.TestPhase;
 
 public class CombinedGestureDataLogger : MonoBehaviour
 {
-    private enum TestPhase
-    {
-        None,
-        Fixation,
-        Saccade,
-        Blink
-    }
-
     public OVREyeGaze leftEyeGaze;
     public OVREyeGaze rightEyeGaze;
     public Transform centerEyeAnchor;

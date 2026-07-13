@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using DataLoggers.DataPoints;
 
 public class BlinkDataLogger : BaseDataLogger
 {
@@ -16,12 +17,6 @@ public class BlinkDataLogger : BaseDataLogger
     public float initialDelay = 3.0f; 
 
     private Coroutine metronomeRoutine;
-
-    private struct BlinkDataPoint
-    {
-        public float TimeMs, LeftBlinkWeight, RightBlinkWeight;
-        public float LConf, RConf;
-    }
 
     private List<BlinkDataPoint> dataBuffer;
 

@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using DataLoggers.DataPoints;
 
 public class SaccadeDataLogger : BaseDataLogger
 {
@@ -21,13 +22,6 @@ public class SaccadeDataLogger : BaseDataLogger
     };
 
     private Coroutine saccadeRoutine;
-
-    private struct SaccadeDataPoint
-    {
-        public float TimeMs, TargetX, TargetY;
-        public Quaternion HRot, LLocRot, RLocRot, LRot, RRot;
-        public float LConf, RConf;
-    }
 
     private List<SaccadeDataPoint> dataBuffer;
 
