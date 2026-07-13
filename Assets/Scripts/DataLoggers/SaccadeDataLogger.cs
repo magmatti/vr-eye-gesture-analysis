@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using DataLoggers.DataPoints;
+using DataLoggers.TestConfigurations;
 
 public class SaccadeDataLogger : BaseDataLogger
 {
@@ -12,15 +13,9 @@ public class SaccadeDataLogger : BaseDataLogger
     public OVREyeGaze rightEyeGaze;
     public Transform centerEyeAnchor;
 
-    // saccade target settings
     public Transform targetPivot;
     public float jumpInterval = 2.0f;
     
-    private Vector3[] jumpAngles = new Vector3[] {
-        Vector3.zero, new Vector3(0, 15, 0), Vector3.zero, new Vector3(0, -15, 0),
-        Vector3.zero, new Vector3(-10, 0, 0), Vector3.zero, new Vector3(10, 0, 0)
-    };
-
     private Coroutine saccadeRoutine;
 
     private List<SaccadeDataPoint> dataBuffer;
@@ -54,8 +49,8 @@ public class SaccadeDataLogger : BaseDataLogger
         int index = 0;
         while (isLogging)
         {
-            targetPivot.localEulerAngles = jumpAngles[index];
-            index = (index + 1) % jumpAngles.Length;
+            targetPivot.localEulerAngles = SaccadeJumpSequence.Angles[index];
+            index = (index + 1) % SaccadeJumpSequence.Angles.Count;
             yield return new WaitForSeconds(jumpInterval);
         }
     }

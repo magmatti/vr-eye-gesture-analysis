@@ -5,6 +5,7 @@ using System.Collections;
 using TMPro;
 using System.Globalization;
 using DataLoggers.TestPhase;
+using DataLoggers.TestConfigurations;
 
 public class CombinedGestureDataLogger : MonoBehaviour
 {
@@ -16,18 +17,6 @@ public class CombinedGestureDataLogger : MonoBehaviour
 
     public Transform targetPivot;
     public float saccadeJumpInterval = 2.0f;
-
-    private readonly Vector3[] saccadeJumpAngles = new Vector3[]
-    {
-        Vector3.zero,
-        new Vector3(0, 15, 0),
-        Vector3.zero,
-        new Vector3(0, -15, 0),
-        Vector3.zero,
-        new Vector3(-10, 0, 0),
-        Vector3.zero,
-        new Vector3(10, 0, 0)
-    };
 
     public AudioSource metronomeAudio;
     public float blinkInitialDelay = 3.0f;
@@ -234,10 +223,10 @@ public class CombinedGestureDataLogger : MonoBehaviour
         {
             if (targetPivot != null)
             {
-                targetPivot.localEulerAngles = saccadeJumpAngles[index];
+                targetPivot.localEulerAngles = SaccadeJumpSequence.Angles[index];
             }
 
-            index = (index + 1) % saccadeJumpAngles.Length;
+            index = (index + 1) % SaccadeJumpSequence.Angles.Count;
 
             yield return new WaitForSeconds(saccadeJumpInterval);
         }
