@@ -1,9 +1,8 @@
 using UnityEngine;
-using System.IO;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
+using DataLoggers.CSVWriter;
+using DataLoggers.CSVWriter.Definitions;
 using DataLoggers.DataPoints;
 
 public class BlinkDataLogger : BaseDataLogger
@@ -54,8 +53,10 @@ public class BlinkDataLogger : BaseDataLogger
         dataBuffer.Add(new BlinkDataPoint
         {
             TimeMs = (Time.time - testStartTime) * 1000f,
-            LeftBlinkWeight = faceExpressions.GetWeight(OVRFaceExpressions.FaceExpression.EyesClosedL),
-            RightBlinkWeight = faceExpressions.GetWeight(OVRFaceExpressions.FaceExpression.EyesClosedR),
+            LeftBlinkWeight = faceExpressions
+                .GetWeight(OVRFaceExpressions.FaceExpression.EyesClosedL),
+            RightBlinkWeight = faceExpressions
+                .GetWeight(OVRFaceExpressions.FaceExpression.EyesClosedR),
             LConf = leftEyeGaze != null ? leftEyeGaze.Confidence : 0f,
             RConf = rightEyeGaze != null ? rightEyeGaze.Confidence : 0f
         });
@@ -72,22 +73,7 @@ public class BlinkDataLogger : BaseDataLogger
 
     private void WriteBufferToFile()
     {
-        using (StreamWriter writer = new StreamWriter(filePath, false))
-        {
-            writer.WriteLine("Time_ms,LeftBlinkWeight,RightBlinkWeight,LeftConfidence,RightConfidence");
-
-            StringBuilder sb = new StringBuilder(128);
-            foreach (var p in dataBuffer)
-            {
-                sb.Clear();
-                sb.Append(p.TimeMs.ToString("F0", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.LeftBlinkWeight.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.RightBlinkWeight.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.LConf.ToString("F2", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.RConf.ToString("F2", CultureInfo.InvariantCulture));
-                writer.WriteLine(sb.ToString());
-            }
-        }
+        CsvFile.Write(filePath, dataBuffer, BlinkCsvDefinition.Definition);
         dataBuffer.Clear();
     }
 }

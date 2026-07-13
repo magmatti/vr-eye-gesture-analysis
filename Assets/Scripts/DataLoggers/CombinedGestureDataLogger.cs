@@ -3,7 +3,9 @@ using System;
 using System.IO;
 using System.Collections;
 using TMPro;
-using System.Globalization;
+using DataLoggers.CSVWriter;
+using DataLoggers.CSVWriter.Definitions;
+using DataLoggers.DataPoints;
 using DataLoggers.TestPhase;
 using DataLoggers.TestConfigurations;
 
@@ -31,7 +33,7 @@ public class CombinedGestureDataLogger : MonoBehaviour
     public float saccadeDuration = 10.0f;
     public float blinkDuration = 15.0f;
 
-    private StreamWriter writer;
+    private CsvWriter<CombinedGestureDataPoint> writer;
     private string filePath;
 
     private bool isLogging = false;
@@ -55,7 +57,7 @@ public class CombinedGestureDataLogger : MonoBehaviour
 
     private IEnumerator Force90HzRoutine()
     {
-        // wait a little because OVRManager.display can be null at the very beginning.
+        // wait a little because OVRManager.display can be null at the beginning
         float timeout = 3.0f;
         float elapsed = 0.0f;
 
@@ -99,21 +101,12 @@ public class CombinedGestureDataLogger : MonoBehaviour
         }
 
         string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        filePath = Path.Combine(Application.persistentDataPath, $"CombinedGestureData_{timestamp}.csv");
+        filePath = Path
+            .Combine(Application.persistentDataPath, $"CombinedGestureData_{timestamp}.csv");
 
-        writer = new StreamWriter(filePath, false);
-
-        writer.WriteLine(
-            "Time_ms,Phase,PhaseTime_ms," +
-            "TargetRotX,TargetRotY," +
-            "HeadRotX,HeadRotY,HeadRotZ,HeadRotW," +
-            "LeftLocalRotX,LeftLocalRotY,LeftLocalRotZ,LeftLocalRotW," +
-            "LeftWorldRotX,LeftWorldRotY,LeftWorldRotZ,LeftWorldRotW," +
-            "RightLocalRotX,RightLocalRotY,RightLocalRotZ,RightLocalRotW," +
-            "RightWorldRotX,RightWorldRotY,RightWorldRotZ,RightWorldRotW," +
-            "LeftBlinkWeight,RightBlinkWeight," +
-            "LeftConfidence,RightConfidence"
-        );
+        writer = new CsvWriter<CombinedGestureDataPoint>(
+            new StreamWriter(filePath, false),
+            CombinedGestureCsvDefinition.Definition);
 
         if (infoCanvas != null) infoCanvas.SetActive(false);
         if (alertCanvas != null) alertCanvas.SetActive(false);
@@ -139,7 +132,7 @@ public class CombinedGestureDataLogger : MonoBehaviour
 
         if (writer != null)
         {
-            writer.Close();
+            writer.Dispose();
             writer = null;
         }
 
@@ -282,49 +275,26 @@ public class CombinedGestureDataLogger : MonoBehaviour
             rightBlink = faceExpressions.GetWeight(OVRFaceExpressions.FaceExpression.EyesClosedR);
         }
 
-        float leftConfidence = leftEyeGaze != null ? leftEyeGaze.Confidence : 0.0f;
-        float rightConfidence = rightEyeGaze != null ? rightEyeGaze.Confidence : 0.0f;
+        float leftConfidence = leftEyeGaze.Confidence;
+        float rightConfidence = rightEyeGaze.Confidence;
 
-        string line =
-            $"{totalTimeMs.ToString("F0", CultureInfo.InvariantCulture)}," +
-            $"{currentPhase}," +
-            $"{phaseTimeMs.ToString("F0", CultureInfo.InvariantCulture)}," +
-
-            $"{targetX.ToString("F2", CultureInfo.InvariantCulture)}," +
-            $"{targetY.ToString("F2", CultureInfo.InvariantCulture)}," +
-
-            $"{hRot.x.ToString("F5", CultureInfo.InvariantCulture)}," +
-            $"{hRot.y.ToString("F5", CultureInfo.InvariantCulture)}," +
-            $"{hRot.z.ToString("F5", CultureInfo.InvariantCulture)}," +
-            $"{hRot.w.ToString("F5", CultureInfo.InvariantCulture)}," +
-
-            $"{lLocalRot.x.ToString("F5", CultureInfo.InvariantCulture)}," +
-            $"{lLocalRot.y.ToString("F5", CultureInfo.InvariantCulture)}," +
-            $"{lLocalRot.z.ToString("F5", CultureInfo.InvariantCulture)}," +
-            $"{lLocalRot.w.ToString("F5", CultureInfo.InvariantCulture)}," +
-
-            $"{lWorldRot.x.ToString("F5", CultureInfo.InvariantCulture)}," +
-            $"{lWorldRot.y.ToString("F5", CultureInfo.InvariantCulture)}," +
-            $"{lWorldRot.z.ToString("F5", CultureInfo.InvariantCulture)}," +
-            $"{lWorldRot.w.ToString("F5", CultureInfo.InvariantCulture)}," +
-
-            $"{rLocalRot.x.ToString("F5", CultureInfo.InvariantCulture)}," +
-            $"{rLocalRot.y.ToString("F5", CultureInfo.InvariantCulture)}," +
-            $"{rLocalRot.z.ToString("F5", CultureInfo.InvariantCulture)}," +
-            $"{rLocalRot.w.ToString("F5", CultureInfo.InvariantCulture)}," +
-
-            $"{rWorldRot.x.ToString("F5", CultureInfo.InvariantCulture)}," +
-            $"{rWorldRot.y.ToString("F5", CultureInfo.InvariantCulture)}," +
-            $"{rWorldRot.z.ToString("F5", CultureInfo.InvariantCulture)}," +
-            $"{rWorldRot.w.ToString("F5", CultureInfo.InvariantCulture)}," +
-
-            $"{leftBlink.ToString("F5", CultureInfo.InvariantCulture)}," +
-            $"{rightBlink.ToString("F5", CultureInfo.InvariantCulture)}," +
-
-            $"{leftConfidence.ToString("F2", CultureInfo.InvariantCulture)}," +
-            $"{rightConfidence.ToString("F2", CultureInfo.InvariantCulture)}";
-
-        writer.WriteLine(line);
+        writer.WriteRecord(new CombinedGestureDataPoint
+        {
+            TimeMs = totalTimeMs,
+            Phase = currentPhase,
+            PhaseTimeMs = phaseTimeMs,
+            TargetX = targetX,
+            TargetY = targetY,
+            HRot = hRot,
+            LLocRot = lLocalRot,
+            LRot = lWorldRot,
+            RLocRot = rLocalRot,
+            RRot = rWorldRot,
+            LeftBlinkWeight = leftBlink,
+            RightBlinkWeight = rightBlink,
+            LConf = leftConfidence,
+            RConf = rightConfidence
+        });
     }
 
     private float NormalizeEulerAngle(float angle)
@@ -346,7 +316,7 @@ public class CombinedGestureDataLogger : MonoBehaviour
 
         if (writer != null)
         {
-            writer.Close();
+            writer.Dispose();
             writer = null;
         }
 
@@ -385,7 +355,7 @@ public class CombinedGestureDataLogger : MonoBehaviour
     {
         if (writer != null)
         {
-            writer.Close();
+            writer.Dispose();
             writer = null;
         }
     }

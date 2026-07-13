@@ -1,9 +1,8 @@
 using UnityEngine;
-using System.IO;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
+using DataLoggers.CSVWriter;
+using DataLoggers.CSVWriter.Definitions;
 using DataLoggers.DataPoints;
 using DataLoggers.TestConfigurations;
 
@@ -84,48 +83,7 @@ public class SaccadeDataLogger : BaseDataLogger
 
     private void WriteBufferToFile()
     {
-        using (StreamWriter writer = new StreamWriter(filePath, false))
-        {
-            writer.WriteLine("Time_ms,TargetRotX,TargetRotY,HeadRotX,HeadRotY," +
-                             "HeadRotZ,HeadRotW,LeftLocalRotX,LeftLocalRotY," +
-                             "LeftLocalRotZ,LeftLocalRotW,LeftWorldRotX," +
-                             "LeftWorldRotY,LeftWorldRotZ,LeftWorldRotW," +
-                             "LeftConfidence,RightLocalRotX,RightLocalRotY," +
-                             "RightLocalRotZ,RightLocalRotW,RightWorldRotX," +
-                             "RightWorldRotY,RightWorldRotZ,RightWorldRotW,RightConfidence");
-
-            StringBuilder sb = new StringBuilder(512); 
-            foreach (var p in dataBuffer)
-            {
-                sb.Clear();
-                sb.Append(p.TimeMs.ToString("F0", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.TargetX.ToString("F2", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.TargetY.ToString("F2", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.HRot.x.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.HRot.y.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.HRot.z.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.HRot.w.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.LLocRot.x.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.LLocRot.y.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.LLocRot.z.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.LLocRot.w.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.LRot.x.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.LRot.y.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.LRot.z.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.LRot.w.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.LConf.ToString("F2", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.RLocRot.x.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.RLocRot.y.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.RLocRot.z.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.RLocRot.w.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.RRot.x.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.RRot.y.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.RRot.z.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.RRot.w.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.RConf.ToString("F2", CultureInfo.InvariantCulture));
-                writer.WriteLine(sb.ToString());
-            }
-        }
+        CsvFile.Write(filePath, dataBuffer, SaccadeCsvDefinition.Definition);
         dataBuffer.Clear();
     }
 }
