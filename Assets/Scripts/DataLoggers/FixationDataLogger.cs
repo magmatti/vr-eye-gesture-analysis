@@ -1,41 +1,30 @@
 using UnityEngine;
 using System.IO;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-public class SaccadeDataLogger : BaseDataLogger
+public class FixationDataLogger : BaseDataLogger
 {
-    [Header("Eye Tracking Components")]
     public OVREyeGaze leftEyeGaze;
     public OVREyeGaze rightEyeGaze;
     public Transform centerEyeAnchor;
 
-    [Header("Saccade Target Settings")]
-    public Transform targetPivot; 
-    public float jumpInterval = 2.0f; 
-    
-    private Vector3[] jumpAngles = new Vector3[] {
-        Vector3.zero, new Vector3(0, 15, 0), Vector3.zero, new Vector3(0, -15, 0),
-        Vector3.zero, new Vector3(-10, 0, 0), Vector3.zero, new Vector3(10, 0, 0)
-    };
+    public GameObject fixationTarget;
 
-    private Coroutine saccadeRoutine;
-
-    private struct SaccadeDataPoint
+    private struct FixationDataPoint
     {
-        public float TimeMs, TargetX, TargetY;
+        public float TimeMs;
         public Quaternion HRot, LLocRot, RLocRot, LRot, RRot;
         public float LConf, RConf;
     }
 
-    private List<SaccadeDataPoint> dataBuffer;
+    private List<FixationDataPoint> dataBuffer;
 
     protected override void Start()
     {
         base.Start();
-        targetPivot.gameObject.SetActive(false);
+        fixationTarget.SetActive(false);
     }
 
     void Update()
@@ -48,32 +37,17 @@ public class SaccadeDataLogger : BaseDataLogger
 
     public void StartTest()
     {
-        dataBuffer = new List<SaccadeDataPoint>(3000); 
-        targetPivot.gameObject.SetActive(true);
-        targetPivot.localEulerAngles = Vector3.zero;
+        dataBuffer = new List<FixationDataPoint>(3000); 
+        fixationTarget.SetActive(true);
         
-        InitializeTest("Saccade");
-        saccadeRoutine = StartCoroutine(SaccadeSequence());
-    }
-
-    private IEnumerator SaccadeSequence()
-    {
-        int index = 0;
-        while (isLogging)
-        {
-            targetPivot.localEulerAngles = jumpAngles[index];
-            index = (index + 1) % jumpAngles.Length;
-            yield return new WaitForSeconds(jumpInterval);
-        }
+        InitializeTest("Fixation");
     }
 
     private void CaptureData()
     {
-        dataBuffer.Add(new SaccadeDataPoint
+        dataBuffer.Add(new FixationDataPoint
         {
             TimeMs = (Time.time - testStartTime) * 1000f,
-            TargetX = targetPivot.localEulerAngles.x,
-            TargetY = targetPivot.localEulerAngles.y,
             HRot = centerEyeAnchor.rotation,
             LLocRot = leftEyeGaze.transform.localRotation,
             RLocRot = rightEyeGaze.transform.localRotation,
@@ -87,32 +61,27 @@ public class SaccadeDataLogger : BaseDataLogger
     protected override void EndTest()
     {
         isLogging = false;
-        if (saccadeRoutine != null) StopCoroutine(saccadeRoutine);
-        targetPivot.gameObject.SetActive(false);
-
+        fixationTarget.SetActive(false);
         WriteBufferToFile();
-        ShowCompletionAlert("Saccade");
+        ShowCompletionAlert("Fixation");
     }
 
     private void WriteBufferToFile()
     {
         using (StreamWriter writer = new StreamWriter(filePath, false))
         {
-            writer.WriteLine("Time_ms,TargetRotX,TargetRotY,HeadRotX,HeadRotY," +
-                             "HeadRotZ,HeadRotW,LeftLocalRotX,LeftLocalRotY," +
-                             "LeftLocalRotZ,LeftLocalRotW,LeftWorldRotX," +
-                             "LeftWorldRotY,LeftWorldRotZ,LeftWorldRotW," +
+            writer.WriteLine("Time_ms,HeadRotX,HeadRotY,HeadRotZ,HeadRotW," +
+                             "LeftLocalRotX,LeftLocalRotY,LeftLocalRotZ,LeftLocalRotW," +
+                             "LeftWorldRotX,LeftWorldRotY,LeftWorldRotZ,LeftWorldRotW," +
                              "LeftConfidence,RightLocalRotX,RightLocalRotY," +
                              "RightLocalRotZ,RightLocalRotW,RightWorldRotX," +
                              "RightWorldRotY,RightWorldRotZ,RightWorldRotW,RightConfidence");
 
-            StringBuilder sb = new StringBuilder(512); 
+            StringBuilder sb = new StringBuilder(512);
             foreach (var p in dataBuffer)
             {
                 sb.Clear();
                 sb.Append(p.TimeMs.ToString("F0", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.TargetX.ToString("F2", CultureInfo.InvariantCulture)).Append(",")
-                  .Append(p.TargetY.ToString("F2", CultureInfo.InvariantCulture)).Append(",")
                   .Append(p.HRot.x.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
                   .Append(p.HRot.y.ToString("F5", CultureInfo.InvariantCulture)).Append(",")
                   .Append(p.HRot.z.ToString("F5", CultureInfo.InvariantCulture)).Append(",")

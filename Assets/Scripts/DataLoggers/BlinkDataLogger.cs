@@ -7,12 +7,10 @@ using System.Text;
 
 public class BlinkDataLogger : BaseDataLogger
 {
-    [Header("Tracking Components")]
     public OVRFaceExpressions faceExpressions;
     public OVREyeGaze leftEyeGaze;
     public OVREyeGaze rightEyeGaze;
 
-    [Header("Beep Sound Settings")]
     public AudioSource metronomeAudio;
     public float beepInterval = 2.0f;
     public float initialDelay = 3.0f; 

@@ -7,7 +7,6 @@ using System.Globalization;
 
 public class CombinedGestureDataLogger : MonoBehaviour
 {
-
     private enum TestPhase
     {
         None,
@@ -16,18 +15,13 @@ public class CombinedGestureDataLogger : MonoBehaviour
         Blink
     }
 
-    [Header("Eye Tracking Components")]
     public OVREyeGaze leftEyeGaze;
     public OVREyeGaze rightEyeGaze;
     public Transform centerEyeAnchor;
 
-    [Header("Blink Tracking Component")]
     public OVRFaceExpressions faceExpressions;
 
-    [Header("Target Settings")]
     public Transform targetPivot;
-
-    [Header("Saccade Settings")]
     public float saccadeJumpInterval = 2.0f;
 
     private readonly Vector3[] saccadeJumpAngles = new Vector3[]
@@ -42,19 +36,15 @@ public class CombinedGestureDataLogger : MonoBehaviour
         new Vector3(10, 0, 0)
     };
 
-    [Header("Blink Beep Settings")]
     public AudioSource metronomeAudio;
     public float blinkInitialDelay = 3.0f;
     public float beepInterval = 2.0f;
 
-    [Header("UI Panels")]
     public GameObject infoCanvas;
     public GameObject alertCanvas;
 
-    [Header("UI Controls")]
     public TextMeshProUGUI alertMessageText;
 
-    [Header("Fixed Test Durations")]
     public float fixationDuration = 10.0f;
     public float saccadeDuration = 10.0f;
     public float blinkDuration = 15.0f;
