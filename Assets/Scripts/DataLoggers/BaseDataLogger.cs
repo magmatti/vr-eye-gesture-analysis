@@ -6,11 +6,9 @@ using TMPro;
 
 public abstract class BaseDataLogger : MonoBehaviour
 {
-    [Header("Base UI Panels")]
     public GameObject infoCanvas;
     public GameObject alertCanvas;
     
-    [Header("Base UI Controls")]
     public TMP_Dropdown durationDropdown;
     public TextMeshProUGUI alertMessageText;
 
@@ -23,11 +21,14 @@ public abstract class BaseDataLogger : MonoBehaviour
         infoCanvas.SetActive(true);
         alertCanvas.SetActive(false);
 
-        // --- 90 Hz Hardware Override ---
+        // force 90Hz frequency on headset
         if (OVRManager.display != null)
         {
             OVRManager.display.displayFrequency = 90.0f;
-            Debug.Log($"[Eye Tracking] Display frequency forced to: {OVRManager.display.displayFrequency} Hz");
+            Debug.Log(
+                $"[Eye Tracking] Display frequency forced to: " +
+                $"{OVRManager.display.displayFrequency} Hz"
+            );
         }
         else
         {
