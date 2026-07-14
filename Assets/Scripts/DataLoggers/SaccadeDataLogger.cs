@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using DataLoggers.CSVWriter;
 using DataLoggers.CSVWriter.Definitions;
@@ -41,18 +40,11 @@ public class SaccadeDataLogger : BaseDataLogger
         
         InitializeTest("Saccade");
         StartTestTimer();
-        saccadeRoutine = StartCoroutine(SaccadeSequence());
-    }
-
-    private IEnumerator SaccadeSequence()
-    {
-        int index = 0;
-        while (isLogging)
-        {
-            targetPivot.localEulerAngles = SaccadeJumpSequence.Angles[index];
-            index = (index + 1) % SaccadeJumpSequence.Angles.Count;
-            yield return new WaitForSeconds(jumpInterval);
-        }
+        saccadeRoutine = StartCoroutine(
+            SaccadeSequence.Run(
+                targetPivot,
+                jumpInterval,
+                () => isLogging));
     }
 
     private void CaptureData()
