@@ -6,6 +6,8 @@ using TMPro;
 
 public abstract class BaseDataLogger : MonoBehaviour
 {
+    private const float RequiredDisplayFrequency = 90.0f;
+
     public GameObject infoCanvas;
     public GameObject alertCanvas;
     
@@ -18,22 +20,30 @@ public abstract class BaseDataLogger : MonoBehaviour
 
     protected virtual void Start()
     {
-        infoCanvas.SetActive(true);
+        infoCanvas.SetActive(false);
         alertCanvas.SetActive(false);
 
-        // force 90Hz frequency on headset
-        if (OVRManager.display != null)
+        StartCoroutine(SetRequiredDisplayFrequency());
+    }
+
+    private IEnumerator SetRequiredDisplayFrequency()
+    {
+        while (OVRManager.display == null)
         {
-            OVRManager.display.displayFrequency = 90.0f;
-            Debug.Log(
-                $"[Eye Tracking] Display frequency forced to: " +
-                $"{OVRManager.display.displayFrequency} Hz"
-            );
+            yield return null;
         }
-        else
+
+        OVRDisplay display = OVRManager.display;
+
+        while (!Mathf.Approximately(
+            display.displayFrequency,
+            RequiredDisplayFrequency))
         {
-            Debug.LogWarning("[Eye Tracking] OVRManager.display is null. Cannot force 90 Hz.");
+            display.displayFrequency = RequiredDisplayFrequency;
+            yield return null;
         }
+
+        infoCanvas.SetActive(true);
     }
 
     public virtual void RestartTest()
@@ -53,7 +63,8 @@ public abstract class BaseDataLogger : MonoBehaviour
     protected void InitializeTest(string testName)
     {
         string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        filePath = Path.Combine(Application.persistentDataPath, $"{testName}Data_{timestamp}.csv");
+        filePath = Path
+            .Combine(Application.persistentDataPath, $"{testName}Data_{timestamp}.csv");
         
         infoCanvas.SetActive(false);
         alertCanvas.SetActive(false);
@@ -61,10 +72,7 @@ public abstract class BaseDataLogger : MonoBehaviour
         isLogging = true;
     }
 
-    protected void StartTestTimer()
-    {
-        StartCoroutine(TestTimer(GetSelectedDuration()));
-    }
+    protected void StartTestTimer() => StartCoroutine(TestTimer(GetSelectedDuration()));
 
     private IEnumerator TestTimer(float duration)
     {
