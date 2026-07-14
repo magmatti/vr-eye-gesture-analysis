@@ -1,9 +1,9 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using DataLoggers.CSVWriter;
 using DataLoggers.CSVWriter.Definitions;
 using DataLoggers.DataPoints;
+using DataLoggers.TestConfigurations;
 
 public class BlinkDataLogger : BaseDataLogger
 {
@@ -31,21 +31,13 @@ public class BlinkDataLogger : BaseDataLogger
     {
         dataBuffer = new List<BlinkDataPoint>(3000);
         InitializeTest("Blink");
-        metronomeRoutine = StartCoroutine(MetronomeSequence());
-    }
-
-    private IEnumerator MetronomeSequence()
-    {
-        yield return new WaitForSeconds(initialDelay);
-
-        while (isLogging)
-        {
-            if (metronomeAudio != null && metronomeAudio.clip != null)
-            {
-                metronomeAudio.Play();
-            }
-            yield return new WaitForSeconds(beepInterval);
-        }
+        StartTestTimer();
+        metronomeRoutine = StartCoroutine(
+            MetronomeSequence.Run(
+                metronomeAudio,
+                initialDelay,
+                beepInterval,
+                () => isLogging));
     }
 
     private void CaptureData()
