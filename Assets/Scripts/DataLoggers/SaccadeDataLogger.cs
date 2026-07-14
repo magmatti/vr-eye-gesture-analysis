@@ -40,6 +40,7 @@ public class SaccadeDataLogger : BaseDataLogger
         targetPivot.localEulerAngles = Vector3.zero;
         
         InitializeTest("Saccade");
+        StartTestTimer();
         saccadeRoutine = StartCoroutine(SaccadeSequence());
     }
 

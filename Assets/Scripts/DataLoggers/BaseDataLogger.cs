@@ -36,8 +36,9 @@ public abstract class BaseDataLogger : MonoBehaviour
         }
     }
 
-    public void RestartTest()
+    public virtual void RestartTest()
     {
+        isLogging = false;
         alertCanvas.SetActive(false);
         infoCanvas.SetActive(true);
     }
@@ -55,9 +56,13 @@ public abstract class BaseDataLogger : MonoBehaviour
         filePath = Path.Combine(Application.persistentDataPath, $"{testName}Data_{timestamp}.csv");
         
         infoCanvas.SetActive(false);
+        alertCanvas.SetActive(false);
         testStartTime = Time.time;
         isLogging = true;
-        
+    }
+
+    protected void StartTestTimer()
+    {
         StartCoroutine(TestTimer(GetSelectedDuration()));
     }
 

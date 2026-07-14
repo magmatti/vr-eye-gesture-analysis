@@ -34,6 +34,7 @@ public class FixationDataLogger : BaseDataLogger
         fixationTarget.SetActive(true);
         
         InitializeTest("Fixation");
+        StartTestTimer();
     }
 
     private void CaptureData()
