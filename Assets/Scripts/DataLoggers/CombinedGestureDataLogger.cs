@@ -1,6 +1,6 @@
 using UnityEngine;
-using System.IO;
 using System.Collections;
+using System.Collections.Generic;
 using DataLoggers.CSVWriter;
 using DataLoggers.CSVWriter.Definitions;
 using DataLoggers.DataPoints;
@@ -25,7 +25,7 @@ public class CombinedGestureDataLogger : BaseDataLogger
     public float saccadeDuration = 10.0f;
     public float blinkDuration = 15.0f;
 
-    private CsvWriter<CombinedGestureDataPoint> writer;
+    private List<CombinedGestureDataPoint> dataBuffer;
     private CombinedTestSequence testSequence;
 
     private Coroutine testRoutine;
@@ -41,21 +41,16 @@ public class CombinedGestureDataLogger : BaseDataLogger
     {
         if (!isLogging) return;
 
-        LogData();
+        CaptureData();
     }
-
-    private void OnDestroy() => DisposeWriter();
 
     public void StartTest()
     {
         StopTestExecution();
-        DisposeWriter();
+
+        dataBuffer = new List<CombinedGestureDataPoint>(5000);
 
         InitializeTest("CombinedGesture");
-
-        writer = new CsvWriter<CombinedGestureDataPoint>(
-            new StreamWriter(filePath, false),
-            CombinedGestureCsvDefinition.Definition);
 
         testSequence = new CombinedTestSequence(
             this,
@@ -80,7 +75,7 @@ public class CombinedGestureDataLogger : BaseDataLogger
     public override void RestartTest()
     {
         StopTestExecution();
-        DisposeWriter();
+        dataBuffer.Clear();
 
         if (targetPivot != null)
         {
@@ -91,60 +86,35 @@ public class CombinedGestureDataLogger : BaseDataLogger
         base.RestartTest();
     }
 
-    private void LogData()
+    private void CaptureData()
     {
-        if (writer == null) return;
+        Vector3 targetAngles = targetPivot != null
+            ? targetPivot.localEulerAngles
+            : Vector3.zero;
 
-        float totalTimeMs = (Time.time - testStartTime) * 1000.0f;
-        float phaseTimeMs = (Time.time - testSequence.PhaseStartTime) * 1000.0f;
+        bool faceTrackingEnabled = faceExpressions != null
+            && faceExpressions.FaceTrackingEnabled;
 
-        float targetX = 0.0f;
-        float targetY = 0.0f;
-
-        if (targetPivot != null)
+        dataBuffer.Add(new CombinedGestureDataPoint
         {
-            Vector3 targetAngles = targetPivot.localEulerAngles;
-
-            targetX = NormalizeEulerAngle(targetAngles.x);
-            targetY = NormalizeEulerAngle(targetAngles.y);
-        }
-
-        Quaternion hRot = centerEyeAnchor.rotation;
-
-        Quaternion lLocalRot = leftEyeGaze.transform.localRotation;
-        Quaternion rLocalRot = rightEyeGaze.transform.localRotation;
-
-        Quaternion lWorldRot = leftEyeGaze.transform.rotation;
-        Quaternion rWorldRot = rightEyeGaze.transform.rotation;
-
-        float leftBlink = 0.0f;
-        float rightBlink = 0.0f;
-
-        if (faceExpressions != null && faceExpressions.FaceTrackingEnabled)
-        {
-            leftBlink = faceExpressions.GetWeight(OVRFaceExpressions.FaceExpression.EyesClosedL);
-            rightBlink = faceExpressions.GetWeight(OVRFaceExpressions.FaceExpression.EyesClosedR);
-        }
-
-        float leftConfidence = leftEyeGaze.Confidence;
-        float rightConfidence = rightEyeGaze.Confidence;
-
-        writer.WriteRecord(new CombinedGestureDataPoint
-        {
-            TimeMs = totalTimeMs,
+            TimeMs = (Time.time - testStartTime) * 1000.0f,
             Phase = testSequence.CurrentPhase,
-            PhaseTimeMs = phaseTimeMs,
-            TargetX = targetX,
-            TargetY = targetY,
-            HRot = hRot,
-            LLocRot = lLocalRot,
-            LRot = lWorldRot,
-            RLocRot = rLocalRot,
-            RRot = rWorldRot,
-            LeftBlinkWeight = leftBlink,
-            RightBlinkWeight = rightBlink,
-            LConf = leftConfidence,
-            RConf = rightConfidence
+            PhaseTimeMs = (Time.time - testSequence.PhaseStartTime) * 1000.0f,
+            TargetX = NormalizeEulerAngle(targetAngles.x),
+            TargetY = NormalizeEulerAngle(targetAngles.y),
+            HRot = centerEyeAnchor.rotation,
+            LLocRot = leftEyeGaze.transform.localRotation,
+            LRot = leftEyeGaze.transform.rotation,
+            RLocRot = rightEyeGaze.transform.localRotation,
+            RRot = rightEyeGaze.transform.rotation,
+            LeftBlinkWeight = faceTrackingEnabled
+                ? faceExpressions.GetWeight(OVRFaceExpressions.FaceExpression.EyesClosedL)
+                : 0.0f,
+            RightBlinkWeight = faceTrackingEnabled
+                ? faceExpressions.GetWeight(OVRFaceExpressions.FaceExpression.EyesClosedR)
+                : 0.0f,
+            LConf = leftEyeGaze.Confidence,
+            RConf = rightEyeGaze.Confidence
         });
     }
 
@@ -161,7 +131,6 @@ public class CombinedGestureDataLogger : BaseDataLogger
         testRoutine = null;
 
         StopTestSequence();
-        DisposeWriter();
 
         if (targetPivot != null)
         {
@@ -169,6 +138,7 @@ public class CombinedGestureDataLogger : BaseDataLogger
             targetPivot.gameObject.SetActive(false);
         }
 
+        WriteBufferToFile();
         ShowCompletionAlert("Combined Gesture");
     }
 
@@ -191,12 +161,13 @@ public class CombinedGestureDataLogger : BaseDataLogger
         testSequence = null;
     }
 
-    private void DisposeWriter()
+    private void WriteBufferToFile()
     {
-        if (writer != null)
-        {
-            writer.Dispose();
-            writer = null;
-        }
+        CsvFile.Write(
+            filePath,
+            dataBuffer,
+            CombinedGestureCsvDefinition.Definition);
+
+        dataBuffer.Clear();
     }
 }
