@@ -61,13 +61,13 @@ namespace DataLoggers.TestConfigurations
 
         private IEnumerator FixationPhase()
         {
-            StartPhase(GestureTestPhase.Fixation);
+            StartPhase(GestureTestPhase.Fixation, showTarget: true);
             yield return new WaitForSeconds(fixationDuration);
         }
 
         private IEnumerator SaccadePhase()
         {
-            StartPhase(GestureTestPhase.Saccade);
+            StartPhase(GestureTestPhase.Saccade, showTarget: true);
 
             saccadeRoutine = coroutineOwner.StartCoroutine(
                 SaccadeSequence.Run(
@@ -82,7 +82,7 @@ namespace DataLoggers.TestConfigurations
 
         private IEnumerator BlinkPhase()
         {
-            StartPhase(GestureTestPhase.Blink);
+            StartPhase(GestureTestPhase.Blink, showTarget: false);
 
             metronomeRoutine = coroutineOwner.StartCoroutine(
                 MetronomeSequence.Run(
@@ -96,13 +96,13 @@ namespace DataLoggers.TestConfigurations
             StopMetronomeSequence();
         }
 
-        private void StartPhase(GestureTestPhase phase)
+        private void StartPhase(GestureTestPhase phase, bool showTarget)
         {
             CurrentPhase = phase;
             PhaseStartTime = Time.time;
 
-            targetPivot.gameObject.SetActive(true);
             targetPivot.localEulerAngles = Vector3.zero;
+            targetPivot.gameObject.SetActive(showTarget);
         }
 
         private void StopSaccadeSequence()
