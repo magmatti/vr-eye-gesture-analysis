@@ -161,3 +161,7 @@ dmypy.json
 # Environment variable files
 .env
 .env.local
+
+# Agents
+
+Agents.md

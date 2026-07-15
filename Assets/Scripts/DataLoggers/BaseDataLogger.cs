@@ -6,11 +6,11 @@ using TMPro;
 
 public abstract class BaseDataLogger : MonoBehaviour
 {
-    [Header("Base UI Panels")]
+    private const float RequiredDisplayFrequency = 90.0f;
+
     public GameObject infoCanvas;
     public GameObject alertCanvas;
     
-    [Header("Base UI Controls")]
     public TMP_Dropdown durationDropdown;
     public TextMeshProUGUI alertMessageText;
 
@@ -20,23 +20,35 @@ public abstract class BaseDataLogger : MonoBehaviour
 
     protected virtual void Start()
     {
-        infoCanvas.SetActive(true);
+        infoCanvas.SetActive(false);
         alertCanvas.SetActive(false);
 
-        // --- 90 Hz Hardware Override ---
-        if (OVRManager.display != null)
-        {
-            OVRManager.display.displayFrequency = 90.0f;
-            Debug.Log($"[Eye Tracking] Display frequency forced to: {OVRManager.display.displayFrequency} Hz");
-        }
-        else
-        {
-            Debug.LogWarning("[Eye Tracking] OVRManager.display is null. Cannot force 90 Hz.");
-        }
+        StartCoroutine(SetRequiredDisplayFrequency());
     }
 
-    public void RestartTest()
+    private IEnumerator SetRequiredDisplayFrequency()
     {
+        while (OVRManager.display == null)
+        {
+            yield return null;
+        }
+
+        OVRDisplay display = OVRManager.display;
+
+        while (!Mathf.Approximately(
+            display.displayFrequency,
+            RequiredDisplayFrequency))
+        {
+            display.displayFrequency = RequiredDisplayFrequency;
+            yield return null;
+        }
+
+        infoCanvas.SetActive(true);
+    }
+
+    public virtual void RestartTest()
+    {
+        isLogging = false;
         alertCanvas.SetActive(false);
         infoCanvas.SetActive(true);
     }
@@ -51,14 +63,16 @@ public abstract class BaseDataLogger : MonoBehaviour
     protected void InitializeTest(string testName)
     {
         string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        filePath = Path.Combine(Application.persistentDataPath, $"{testName}Data_{timestamp}.csv");
+        filePath = Path
+            .Combine(Application.persistentDataPath, $"{testName}Data_{timestamp}.csv");
         
         infoCanvas.SetActive(false);
+        alertCanvas.SetActive(false);
         testStartTime = Time.time;
         isLogging = true;
-        
-        StartCoroutine(TestTimer(GetSelectedDuration()));
     }
+
+    protected void StartTestTimer() => StartCoroutine(TestTimer(GetSelectedDuration()));
 
     private IEnumerator TestTimer(float duration)
     {

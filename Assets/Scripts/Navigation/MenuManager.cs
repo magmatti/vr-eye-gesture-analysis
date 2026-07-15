@@ -3,8 +3,6 @@ using UnityEngine.SceneManagement;
 
 public class MenuManager : MonoBehaviour
 {
-
-    [Header("Scene names")]
     [SerializeField] private string fixationTestScene = "FixationTestScene";
     [SerializeField] private string saccadeTestScene = "SaccadeTestScene";
     [SerializeField] private string blinkTestScene = "BlinkTestScene";
