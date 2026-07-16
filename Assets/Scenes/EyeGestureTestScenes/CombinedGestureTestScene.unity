@@ -1197,7 +1197,8 @@ MonoBehaviour:
   centerEyeAnchor: {fileID: 1312951190}
   faceExpressions: {fileID: 1312951194}
   targetPivot: {fileID: 52752249}
-  saccadeJumpInterval: 2
+  saccadeJumpInterval: 1.75
+  saccadeMoveDuration: 0.05
   metronomeAudio: {fileID: 173853539}
   blinkInitialDelay: 2
   beepInterval: 1.5
