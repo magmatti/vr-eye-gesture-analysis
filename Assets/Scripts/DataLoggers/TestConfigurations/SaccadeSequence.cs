@@ -12,13 +12,34 @@ namespace DataLoggers.TestConfigurations
             float moveDuration,
             Func<bool> shouldContinue)
         {
-            int index = 0;
+            Vector3[] peripheralAngles =
+                SaccadeJumpSequence.CreateRandomizedPeripheralAngles();
+            int peripheralIndex = 0;
+            bool moveToPeripheral = false;
 
             while (shouldContinue())
             {
                 Quaternion startRotation = targetPivot.localRotation;
-                Quaternion targetRotation =
-                    Quaternion.Euler(SaccadeJumpSequence.Angles[index]);
+
+                // alternate between the center and the next randomized peripheral direction
+                Vector3 targetAngle = Vector3.zero;
+
+                if (moveToPeripheral)
+                {
+                    targetAngle = peripheralAngles[peripheralIndex];
+                    peripheralIndex++;
+
+                    // reshuffle after every direction has been used once
+                    if (peripheralIndex == peripheralAngles.Length)
+                    {
+                        peripheralAngles =
+                            SaccadeJumpSequence.CreateRandomizedPeripheralAngles();
+                        peripheralIndex = 0;
+                    }
+                }
+
+                // prepare the destination rotation and reset the interpolation timer
+                Quaternion targetRotation = Quaternion.Euler(targetAngle);
                 float elapsedTime = 0.0f;
 
                 while (elapsedTime < moveDuration && shouldContinue())
@@ -34,7 +55,7 @@ namespace DataLoggers.TestConfigurations
                 if (!shouldContinue()) yield break;
 
                 targetPivot.localRotation = targetRotation;
-                index = (index + 1) % SaccadeJumpSequence.Angles.Count;
+                moveToPeripheral = !moveToPeripheral;
 
                 float dwellDuration = Mathf.Max(0.0f, jumpInterval - moveDuration);
                 yield return new WaitForSeconds(dwellDuration);
