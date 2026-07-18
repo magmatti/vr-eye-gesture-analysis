@@ -14,6 +14,7 @@ namespace DataLoggers.TestConfigurations
         private readonly float saccadeDuration;
         private readonly float blinkDuration;
         private readonly float saccadeJumpInterval;
+        private readonly float saccadeMoveDuration;
         private readonly float blinkInitialDelay;
         private readonly float beepInterval;
 
@@ -31,6 +32,7 @@ namespace DataLoggers.TestConfigurations
             float saccadeDuration,
             float blinkDuration,
             float saccadeJumpInterval,
+            float saccadeMoveDuration,
             float blinkInitialDelay,
             float beepInterval)
         {
@@ -41,6 +43,7 @@ namespace DataLoggers.TestConfigurations
             this.saccadeDuration = saccadeDuration;
             this.blinkDuration = blinkDuration;
             this.saccadeJumpInterval = saccadeJumpInterval;
+            this.saccadeMoveDuration = saccadeMoveDuration;
             this.blinkInitialDelay = blinkInitialDelay;
             this.beepInterval = beepInterval;
         }
@@ -73,6 +76,7 @@ namespace DataLoggers.TestConfigurations
                 SaccadeSequence.Run(
                     targetPivot,
                     saccadeJumpInterval,
+                    saccadeMoveDuration,
                     () => CurrentPhase == GestureTestPhase.Saccade));
 
             yield return new WaitForSeconds(saccadeDuration);

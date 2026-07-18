@@ -15,7 +15,8 @@ public class CombinedGestureDataLogger : BaseDataLogger
     public OVRFaceExpressions faceExpressions;
 
     public Transform targetPivot;
-    public float saccadeJumpInterval = 2.0f;
+    public float saccadeJumpInterval = 1.75f;
+    public float saccadeMoveDuration = 0.05f;
 
     public AudioSource metronomeAudio;
     public float blinkInitialDelay = 3.0f;
@@ -60,6 +61,7 @@ public class CombinedGestureDataLogger : BaseDataLogger
             saccadeDuration,
             blinkDuration,
             saccadeJumpInterval,
+            saccadeMoveDuration,
             blinkInitialDelay,
             beepInterval);
 

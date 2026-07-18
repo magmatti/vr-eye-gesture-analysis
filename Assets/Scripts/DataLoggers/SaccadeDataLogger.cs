@@ -12,7 +12,8 @@ public class SaccadeDataLogger : BaseDataLogger
     public Transform centerEyeAnchor;
 
     public Transform targetPivot;
-    public float jumpInterval = 2.0f;
+    public float jumpInterval = 1.75f;
+    public float moveDuration = 0.05f;
     
     private Coroutine saccadeRoutine;
 
@@ -44,6 +45,7 @@ public class SaccadeDataLogger : BaseDataLogger
             SaccadeSequence.Run(
                 targetPivot,
                 jumpInterval,
+                moveDuration,
                 () => isLogging));
     }
 

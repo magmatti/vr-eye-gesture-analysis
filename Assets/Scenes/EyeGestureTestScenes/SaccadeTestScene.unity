@@ -11201,7 +11201,8 @@ MonoBehaviour:
   rightEyeGaze: {fileID: 374078723}
   centerEyeAnchor: {fileID: 1710752569}
   targetPivot: {fileID: 1267925421}
-  jumpInterval: 2
+  jumpInterval: 1.75
+  moveDuration: 0.05
   infoCanvas: {fileID: 1851048902}
   alertCanvas: {fileID: 727331815}
   durationDropdown: {fileID: 1274302989}
