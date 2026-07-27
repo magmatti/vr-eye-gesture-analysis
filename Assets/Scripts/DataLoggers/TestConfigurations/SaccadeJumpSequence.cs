@@ -8,8 +8,8 @@ namespace DataLoggers.TestConfigurations
         {
             new Vector3(0, 15, 0),
             new Vector3(0, -15, 0),
-            new Vector3(-10, 0, 0),
-            new Vector3(10, 0, 0)
+            new Vector3(-15, 0, 0),
+            new Vector3(15, 0, 0)
         };
 
         internal static Vector3[] CreateRandomizedPeripheralAngles()

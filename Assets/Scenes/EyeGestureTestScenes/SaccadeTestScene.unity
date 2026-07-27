@@ -11197,16 +11197,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d1d821b6472ab4503bb2aebdbe599731, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SaccadeDataLogger
-  leftEyeGaze: {fileID: 1361258391}
-  rightEyeGaze: {fileID: 374078723}
-  centerEyeAnchor: {fileID: 1710752569}
-  targetPivot: {fileID: 1267925421}
-  jumpInterval: 1.75
-  moveDuration: 0.05
   infoCanvas: {fileID: 1851048902}
   alertCanvas: {fileID: 727331815}
   durationDropdown: {fileID: 1274302989}
   alertMessageText: {fileID: 1639235348}
+  leftEyeGaze: {fileID: 1361258391}
+  rightEyeGaze: {fileID: 374078723}
+  centerEyeAnchor: {fileID: 1710752569}
+  targetPivot: {fileID: 1267925421}
+  jumpInterval: 1.5
+  moveDuration: 0.05
 --- !u!114 &1595130959
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11219,6 +11219,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f6f9fd41420d4e99ba51fb9e7fae4e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MenuManager
+  fixationTestScene: FixationTestScene
+  saccadeTestScene: SaccadeTestScene
+  blinkTestScene: BlinkTestScene
+  combinedGestureScene: CombinedGestureTestScene
+  mainMenuScene: MainMenuScene
 --- !u!1 &1600468651
 GameObject:
   m_ObjectHideFlags: 0

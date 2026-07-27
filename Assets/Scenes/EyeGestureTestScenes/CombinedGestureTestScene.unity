@@ -1192,19 +1192,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 540981fd26b6c4aa1a8fcf1e9d5910fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombinedGestureDataLogger
+  infoCanvas: {fileID: 362769313}
+  alertCanvas: {fileID: 1474035091}
+  durationDropdown: {fileID: 0}
+  alertMessageText: {fileID: 2103850714}
   leftEyeGaze: {fileID: 1937041620}
   rightEyeGaze: {fileID: 1079315437}
   centerEyeAnchor: {fileID: 1312951190}
   faceExpressions: {fileID: 1312951194}
   targetPivot: {fileID: 52752249}
-  saccadeJumpInterval: 1.75
+  saccadeJumpInterval: 1.5
   saccadeMoveDuration: 0.05
   metronomeAudio: {fileID: 173853539}
   blinkInitialDelay: 2
   beepInterval: 1.5
-  infoCanvas: {fileID: 362769313}
-  alertCanvas: {fileID: 1474035091}
-  alertMessageText: {fileID: 2103850714}
   fixationDuration: 10
   saccadeDuration: 20
   blinkDuration: 15
