@@ -60,11 +60,12 @@ public abstract class BaseDataLogger : MonoBehaviour
         return 10f;
     }
 
-    protected void InitializeTest(string testName)
+    protected void InitializeTest(string testName, string fileNameSuffix)
     {
         string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        filePath = Path
-            .Combine(Application.persistentDataPath, $"{testName}Data_{timestamp}.csv");
+        string fileName = $"{testName}Data_{timestamp}_{fileNameSuffix}.csv";
+        
+        filePath = Path.Combine(Application.persistentDataPath, fileName);
         
         infoCanvas.SetActive(false);
         alertCanvas.SetActive(false);

@@ -51,7 +51,7 @@ public class CombinedGestureDataLogger : BaseDataLogger
 
         dataBuffer = new List<CombinedGestureDataPoint>(5000);
 
-        InitializeTest("CombinedGesture");
+        InitializeTest("CombinedGesture", "combined");
 
         testSequence = new CombinedTestSequence(
             this,

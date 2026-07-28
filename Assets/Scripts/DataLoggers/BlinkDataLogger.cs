@@ -30,8 +30,10 @@ public class BlinkDataLogger : BaseDataLogger
     public void StartTest()
     {
         dataBuffer = new List<BlinkDataPoint>(3000);
-        InitializeTest("Blink");
+
+        InitializeTest("Blink", $"{GetSelectedDuration():F0}s");
         StartTestTimer();
+        
         metronomeRoutine = StartCoroutine(
             MetronomeSequence.Run(
                 metronomeAudio,

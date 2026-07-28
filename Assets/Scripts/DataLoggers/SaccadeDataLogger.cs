@@ -39,8 +39,9 @@ public class SaccadeDataLogger : BaseDataLogger
         targetPivot.gameObject.SetActive(true);
         targetPivot.localEulerAngles = Vector3.zero;
         
-        InitializeTest("Saccade");
+        InitializeTest("Saccade", $"{GetSelectedDuration():F0}s");
         StartTestTimer();
+        
         saccadeRoutine = StartCoroutine(
             SaccadeSequence.Run(
                 targetPivot,

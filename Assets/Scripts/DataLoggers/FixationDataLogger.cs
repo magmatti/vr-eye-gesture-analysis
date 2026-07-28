@@ -33,7 +33,7 @@ public class FixationDataLogger : BaseDataLogger
         dataBuffer = new List<FixationDataPoint>(3000); 
         fixationTarget.SetActive(true);
         
-        InitializeTest("Fixation");
+        InitializeTest("Fixation", $"{GetSelectedDuration():F0}s");
         StartTestTimer();
     }
 
