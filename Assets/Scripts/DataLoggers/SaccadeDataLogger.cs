@@ -12,7 +12,7 @@ public class SaccadeDataLogger : BaseDataLogger
     public Transform centerEyeAnchor;
 
     public Transform targetPivot;
-    public float jumpInterval = 1.75f;
+    public float jumpInterval = 1.5;
     public float moveDuration = 0.05f;
     
     private Coroutine saccadeRoutine;
