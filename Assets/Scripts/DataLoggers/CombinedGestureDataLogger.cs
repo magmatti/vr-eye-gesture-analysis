@@ -19,8 +19,8 @@ public class CombinedGestureDataLogger : BaseDataLogger
     public float saccadeMoveDuration = 0.05f;
 
     public AudioSource metronomeAudio;
-    public float blinkInitialDelay = 3.0f;
-    public float beepInterval = 2.0f;
+    public float blinkInitialDelay = 2.0f;
+    public float beepInterval = 1.5f;
 
     public float fixationDuration = 10.0f;
     public float saccadeDuration = 10.0f;

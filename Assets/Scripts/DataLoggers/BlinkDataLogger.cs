@@ -12,8 +12,8 @@ public class BlinkDataLogger : BaseDataLogger
     public OVREyeGaze rightEyeGaze;
 
     public AudioSource metronomeAudio;
-    public float beepInterval = 2.0f;
-    public float initialDelay = 3.0f; 
+    public float beepInterval = 1.5f;
+    public float initialDelay = 2.0f; 
 
     private Coroutine metronomeRoutine;
 
