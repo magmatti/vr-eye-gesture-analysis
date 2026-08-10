@@ -7,6 +7,8 @@ using TMPro;
 public abstract class BaseDataLogger : MonoBehaviour
 {
     private const float RequiredDisplayFrequency = 90.0f;
+    private const float DisplayFrequencyTolerance = 0.5f;
+    private const float DisplayFrequencyCheckInterval = 0.5f;
 
     public GameObject infoCanvas;
     public GameObject alertCanvas;
@@ -23,10 +25,10 @@ public abstract class BaseDataLogger : MonoBehaviour
         infoCanvas.SetActive(false);
         alertCanvas.SetActive(false);
 
-        StartCoroutine(SetRequiredDisplayFrequency());
+        StartCoroutine(MaintainRequiredDisplayFrequency());
     }
 
-    private IEnumerator SetRequiredDisplayFrequency()
+    private IEnumerator MaintainRequiredDisplayFrequency()
     {
         while (OVRManager.display == null)
         {
@@ -35,15 +37,31 @@ public abstract class BaseDataLogger : MonoBehaviour
 
         OVRDisplay display = OVRManager.display;
 
-        while (!Mathf.Approximately(
-            display.displayFrequency,
-            RequiredDisplayFrequency))
+        while (!IsRequiredDisplayFrequency(display))
         {
             display.displayFrequency = RequiredDisplayFrequency;
             yield return null;
         }
 
         infoCanvas.SetActive(true);
+
+        WaitForSeconds checkDelay = new WaitForSeconds(DisplayFrequencyCheckInterval);
+
+        while (true)
+        {
+            yield return checkDelay;
+
+            if (!IsRequiredDisplayFrequency(display))
+            {
+                display.displayFrequency = RequiredDisplayFrequency;
+            }
+        }
+    }
+
+    private bool IsRequiredDisplayFrequency(OVRDisplay display)
+    {
+        return Mathf.Abs(display.displayFrequency - RequiredDisplayFrequency)
+            < DisplayFrequencyTolerance;
     }
 
     public virtual void RestartTest()
