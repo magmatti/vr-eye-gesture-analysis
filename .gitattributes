@@ -1,0 +1,4 @@
+# flagging dependencies e.g (TextMesh Pro, Meta XR SDK) as "vendored"
+
+Assets/** linguist-vendored
+Assets/Scripts/** linguist-vendored=false
